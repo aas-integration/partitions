@@ -1,4 +1,4 @@
-package com.vesperin.partition.cmds;
+package com.vesperin.partition.spi;
 
 /**
  * @author Huascar Sanchez
@@ -13,7 +13,7 @@ import java.util.List;
  * A mkdir command.
  */
 public final class Mkdir {
-  public void mkdirs(File directory) {
+  public void mkdir(File directory) {
     final List<String> args = Lists.newArrayList("mkdir", "-p", directory.getPath());
     new Command(args).execute();
   }

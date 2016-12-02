@@ -1,4 +1,4 @@
-package com.vesperin.partition.cmds;
+package com.vesperin.partition.spi;
 
 import com.google.common.collect.Lists;
 

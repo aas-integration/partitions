@@ -1,4 +1,4 @@
-package com.vesperin.partition.cmds;
+package com.vesperin.partition.spi;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -126,7 +126,7 @@ public class Git {
       if(Files.exists(from)){
         if(!Files.exists(to)){
           final Mkdir mkdir = new Mkdir();
-          mkdir.mkdirs(to.toFile());
+          mkdir.mkdir(to.toFile());
         }
 
         final Rsync move = new Rsync();
