@@ -17,6 +17,7 @@ hs_err_pid*
 # User-specific stuff:
 .idea/workspace.xml
 .idea/tasks.xml
+.idea/
 
 # Sensitive or high-churn files:
 .idea/dataSources/
@@ -36,6 +37,12 @@ hs_err_pid*
 
 ## File-based project format:
 *.iws
+*.ipr
+*.iml
+
+target/
+project/project/
+project/target/
 
 ## Plugin-specific files:
 
