@@ -1,5 +1,6 @@
 package com.vesperin.partition.spi;
 
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.vesperin.partition.utils.IO;
@@ -36,22 +37,29 @@ public class Git {
   }
 
   /**
-   * Downloads (clones) a repo into a given directory (path).
+   * Downloads (clones) a repository into a given directory (path).
    *
    * @param gitUrl git url
    */
-  public static void download(String gitUrl){
-    new Git().download(gitUrl, from(gitUrl), null);
+  public static void cloneRepository(String gitUrl){
+    new Git().cloneRepository(gitUrl, from(gitUrl), null);
   }
 
   /**
-   * Downloads (clones) a repo into a given directory (path).
+   * Downloads (clones) a repository into a given directory (path).
    *
    * @param gitUrl git url
    * @param to directory where clone will take place.
+   * @return the name of the repository folder.
    */
-  public static void download(String gitUrl, Path to){
-    new Git().download(gitUrl, from(gitUrl), to);
+  public static String cloneRepository(String gitUrl, Path to){
+    final Path repository = from(gitUrl);
+
+    if(!Files.exists(to)) {
+      new Git().cloneRepository(gitUrl, repository, to);
+    }
+
+    return repository.toFile().getName();
   }
 
   /**
@@ -81,8 +89,11 @@ public class Git {
    *
    * @param json the path to corpus.json file
    * @param to the destination folder
+   * @return list of project names
    */
-  public static void processJson(Path json, Path to){
+  public static List<String> processJson(Path json, Path to){
+
+    final List<String> names = Lists.newArrayList();
 
     try {
       Gson gson = new Gson();
@@ -97,13 +108,15 @@ public class Git {
 
           eachRepositoryEntry.keySet().stream()
             .filter("git-url"::equals)
-            .forEach(eachEntryKey -> Git.download(eachRepositoryEntry.get(eachEntryKey), to));
+            .forEach(eachEntryKey -> names.add(Git.cloneRepository(eachRepositoryEntry.get(eachEntryKey), to)));
 
         }
       }
     } catch (IOException e){
       log("Unable to read file", e);
     }
+
+    return names;
   }
 
 
@@ -118,7 +131,7 @@ public class Git {
     return Paths.get(name);
   }
 
-  public List<String> download(String gitUrl, Path from, Path to){
+  public List<String> cloneRepository(String gitUrl, Path from, Path to){
     final List<String> output = (builder.arguments("clone", gitUrl).execute());
 
     final boolean isToNull = Objects.isNull(to);
