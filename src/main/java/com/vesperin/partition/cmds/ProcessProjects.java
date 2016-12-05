@@ -82,8 +82,8 @@ public class ProcessProjects implements BasicCli.CliCommand {
         Introspector.disableMonitor();
       }
 
-      final Path corpusJson = Paths.get(from);
-      final Path outDir     = Paths.get(to);
+      final Path corpusJson = Paths.get(from).toAbsolutePath();
+      final Path outDir     = Paths.get(to).toAbsolutePath();
 
       final List<String> projectNames = Git.processJson(corpusJson, outDir);
       if(projectNames.isEmpty()){
