@@ -1,0 +1,6 @@
+#!/bin/zsh
+
+# To see the CLI's supported commands, execute the following command: ./vip p -h
+# To use it:
+
+java -cp ".:partitions.jar:*" com.vesperin.partition.BasicCli $*
