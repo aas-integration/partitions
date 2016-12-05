@@ -16,6 +16,7 @@ import com.vesperin.partition.utils.Sources;
 import com.vesperin.text.Corpus;
 import com.vesperin.text.Grouping;
 import com.vesperin.text.Introspector;
+import com.vesperin.text.Partition;
 import com.vesperin.text.Project;
 import com.vesperin.text.Selection;
 import com.vesperin.text.spi.BasicExecutionMonitor;
@@ -28,13 +29,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.vesperin.text.Selection.Word;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 
@@ -123,6 +124,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
       }
 
       final List<List<Project<Source>>> pGroups = Lists.newArrayList();
+
       final Grouping.Groups groups = Grouping.groupProjects(projects);
       for(Grouping.Group each : groups){
         final List<Project<Source>> pList = Lists.newArrayList();
@@ -182,20 +184,8 @@ public class ProcessProjects implements BasicCli.CliCommand {
       for(List<Project<Source>> each : groups){
         final Set<String> words = Sets.newHashSet();
 
-        final Iterator<Project<Source>> itr = each.iterator();
-        final Set<String> first = itr.next().wordSet().stream().map(Selection.Word::element)
-          .collect(Collectors.toSet());
-
-        words.addAll(first);
-
-        while(itr.hasNext()){
-          final Set<String> w = itr.next().wordSet().stream()
-            .map(Selection.Word::element)
-            .collect(Collectors.toSet());
-
-          words.addAll(Sets.intersection(words, w));
-        }
-
+        final Set<Selection.Word> ws = Partition.getCommonElements(each.stream().collect(Collectors.toSet()));
+        words.addAll(ws.stream().map(Word::element).collect(Collectors.toSet()));
 
         clusters.add(new Cluster(words, each.stream().map(Project::name).collect(Collectors.toSet())));
       }
