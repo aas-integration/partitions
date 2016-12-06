@@ -85,13 +85,22 @@ public class ProcessProjects implements BasicCli.CliCommand {
         }
 
         final Path corpusJson = Paths.get(from).toAbsolutePath();
+
+        if(!Files.exists(corpusJson)){
+          System.err.println(
+            String.format("ERROR: Unable to find %s ", corpusJson)
+          );
+
+          return -1;
+        }
+
         final Path outDir     = Paths.get(to).toAbsolutePath();
 
         final List<String> projectNames = Git.processJson(corpusJson, outDir);
         if(projectNames.isEmpty()){
 
           System.err.println(
-            "Unable to download github projects in " + corpusJson.toFile().getName()
+            "ERROR: Unable to download github projects in " + corpusJson.toFile().getName()
           );
 
           return -1;
@@ -111,7 +120,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
         final WordsTokenizer tokenizer = tokenizer(scope);
         if(Objects.isNull(tokenizer)){
-          System.err.println("Unable to construct a tokenizer matching the given scope");
+          System.err.println("ERROR: Unable to construct a tokenizer matching the given scope");
           return -1;
         }
 
