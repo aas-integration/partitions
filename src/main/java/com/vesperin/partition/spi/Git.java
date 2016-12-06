@@ -55,7 +55,12 @@ public class Git {
   public static String cloneRepository(String gitUrl, Path to){
     final Path repository = from(gitUrl);
 
-    if(!Files.exists(to)) {
+    final Path clonedRepo = Paths.get(
+      to.toFile().getAbsolutePath() + "/" + repository.toFile().getName()
+    );
+
+    if(!Files.exists(clonedRepo)) {
+      log(Lists.newArrayList("cloning " + repository.toFile().getName() + " project."));
       new Git().cloneRepository(gitUrl, repository, to);
     }
 

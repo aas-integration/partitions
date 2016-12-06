@@ -73,92 +73,107 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
   @Override public Integer call() throws Exception {
     if(!help.showHelpIfRequested()){
-      if(BasicCli.allNull(1, from)) {
-        System.err.println("Unable to locate corpus.json file.");
-        return -1;
-      }
 
-      if(verbose){ Introspector.enableMonitor(); } else {
-        Introspector.disableMonitor();
-      }
-
-      final Path corpusJson = Paths.get(from);
-      final Path outDir     = Paths.get(to);
-
-      final List<String> projectNames = Git.processJson(corpusJson, outDir);
-      if(projectNames.isEmpty()){
-
-        System.err.println(
-          "Unable to download github projects in " + corpusJson.toFile().getName()
-        );
-
-        return -1;
-      }
-
-      final List<Map<String, Corpus<Source>>> projectMetadata = Lists.newArrayList();
-
-      for(String name : projectNames){
-        final Path            start   = Paths.get(outDir.toFile().getAbsolutePath() + "/" + name);
-
-        final Corpus<Source>  corpus  = Corpus.ofSources();
-        corpus.addAll(Sources.from(IO.collectFiles(start, "java", "Test", "test", "package-info" )));
-
-        final Map<String, Corpus<Source>> entry = Collections.singletonMap(name, corpus);
-        projectMetadata.add(entry);
-      }
-
-      final WordsTokenizer tokenizer = tokenizer(scope);
-      if(Objects.isNull(tokenizer)){
-        System.err.println("Unable to construct a tokenizer matching the given scope");
-        return -1;
-      }
-
-      final List<Project<Source>> projects = Lists.newArrayList();
-      for(Map<String, Corpus<Source>> each : projectMetadata){
-
-        final String          key = Iterables.get(each.keySet(), 0);
-        final Corpus<Source>  val = Iterables.get(each.values(), 0);
-
-        projects.add(Project.createProject(key, val, tokenizer));
-
-      }
-
-      final List<List<Project<Source>>> pGroups = Lists.newArrayList();
-
-      final Grouping.Groups groups = Grouping.groupProjects(projects);
-      for(Grouping.Group each : groups){
-        final List<Project<Source>> pList = Lists.newArrayList();
-        for(Object o : each){
-          final Project<Source> p = (Project<Source>) o;
-          pList.add(p);
+      try {
+        if(BasicCli.allNull(1, from)) {
+          System.err.println("Unable to locate corpus.json file.");
+          return -1;
         }
 
-        pGroups.add(pList);
-      }
+        if(verbose){ Introspector.enableMonitor(); } else {
+          Introspector.disableMonitor();
+        }
+
+        final Path corpusJson = Paths.get(from).toAbsolutePath();
+
+        if(!Files.exists(corpusJson)){
+          System.err.println(
+            String.format("ERROR: Unable to find %s ", corpusJson)
+          );
+
+          return -1;
+        }
+
+        final Path outDir     = Paths.get(to).toAbsolutePath();
+
+        final List<String> projectNames = Git.processJson(corpusJson, outDir);
+        if(projectNames.isEmpty()){
+
+          System.err.println(
+            "ERROR: Unable to download github projects in " + corpusJson.toFile().getName()
+          );
+
+          return -1;
+        }
+
+        final List<Map<String, Corpus<Source>>> projectMetadata = Lists.newArrayList();
+
+        for(String name : projectNames){
+          final Path            start   = Paths.get(outDir.toFile().getAbsolutePath() + "/" + name);
+
+          final Corpus<Source>  corpus  = Corpus.ofSources();
+          corpus.addAll(Sources.from(IO.collectFiles(start, "java", "Test", "test", "package-info" )));
+
+          final Map<String, Corpus<Source>> entry = Collections.singletonMap(name, corpus);
+          projectMetadata.add(entry);
+        }
+
+        final WordsTokenizer tokenizer = tokenizer(scope);
+        if(Objects.isNull(tokenizer)){
+          System.err.println("ERROR: Unable to construct a tokenizer matching the given scope");
+          return -1;
+        }
+
+        final List<Project<Source>> projects = Lists.newArrayList();
+        for(Map<String, Corpus<Source>> each : projectMetadata){
+
+          final String          key = Iterables.get(each.keySet(), 0);
+          final Corpus<Source>  val = Iterables.get(each.values(), 0);
+
+          projects.add(Project.createProject(key, val, tokenizer));
+
+        }
+
+        final List<List<Project<Source>>> pGroups = Lists.newArrayList();
+
+        final Grouping.Groups groups = Grouping.groupProjects(projects);
+        for(Grouping.Group each : groups){
+          final List<Project<Source>> pList = Lists.newArrayList();
+          for(Object o : each){
+            final Project<Source> p = (Project<Source>) o;
+            pList.add(p);
+          }
+
+          pGroups.add(pList);
+        }
 
 
-      final Clusters  clusters = new Clusters(pGroups);
-      final Gson      gson     = new GsonBuilder()
-        .setPrettyPrinting()
-        .create();
+        final Clusters  clusters = new Clusters(pGroups);
+        final Gson      gson     = new GsonBuilder()
+          .setPrettyPrinting()
+          .create();
 
-      if(Objects.isNull(out)){
+        if(Objects.isNull(out)){
 
-        MONITOR.info(gson.toJson(clusters));
+          MONITOR.info(gson.toJson(clusters));
 
-      } else {
+        } else {
 
-        final Path newFile = Paths.get(out);
-        Files.deleteIfExists(newFile);
+          final Path newFile = Paths.get(out);
+          Files.deleteIfExists(newFile);
 
-        Files.write(
-          newFile,
-          gson.toJson(clusters).getBytes(),
-          CREATE,
-          APPEND
-        );
+          Files.write(
+            newFile,
+            gson.toJson(clusters).getBytes(),
+            CREATE,
+            APPEND
+          );
 
-        MONITOR.info(String.format("%s was created.", out));
+          MONITOR.info(String.format("%s was created.", out));
+        }
+      } catch (Exception e){
+        e.printStackTrace(System.err);
+        return -1;
       }
 
     }
