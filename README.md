@@ -2,10 +2,10 @@
 
 Partitions a list of projects L into N clusters based on their shared words.
 
-The idea to treat each project in L as a cluster. Then, we compare each project p
-against all the projects in L (excluding p). The purpose of this operation is to
-identify a project o that shares number (e.g., > 3) of words with p. If identified, this
-project o is added to p.
+The idea is to treat each project in L as a cluster. Then, each project p
+is compared against all the projects in L (excluding p). The purpose of this
+operation is to identify a project o that shares a number (e.g., > 3) of words
+with p. If identified, this project o is added to p.
 
 Notes:
 
