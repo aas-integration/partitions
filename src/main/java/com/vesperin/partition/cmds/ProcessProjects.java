@@ -60,7 +60,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
   private String out = null;
 
   @Option(name = {"-t", "--to"}, arity = 1, description = "locates path of output folder")
-  private String to = "./";
+  private String to = null;
 
   @Option(name = {"-s", "--scope"}, arity = 1, description = "Search scope: (c)lassname (default), (m)ethodname, method (b)ody")
   private String scope = "c";
@@ -85,6 +85,12 @@ public class ProcessProjects implements BasicCli.CliCommand {
           System.err.println("Unable to locate corpus.json file.");
           return -1;
         }
+
+        if(BasicCli.allNull(1, to)) {
+          System.err.println("Unable to locate output folder.");
+          return -1;
+        }
+
 
         if(verbose){ Introspector.enableMonitor(); } else {
           Introspector.disableMonitor();
