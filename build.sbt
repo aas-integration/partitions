@@ -40,8 +40,7 @@ test in assembly := {}
 // library dependencies. (organization name) % (project name) % (version)
 libraryDependencies ++= Seq(
     "com.google.code.gson" % "gson" % "2.7",
-    "com.github.rvesse" % "airline" % "2.1.0",
-    "de.julielab" % "aliasi-lingpipe" % "4.1.0"
+    "com.github.rvesse" % "airline" % "2.1.0"
 
 )
 
