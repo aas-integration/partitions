@@ -485,16 +485,15 @@ public class Command {
     protected abstract void onTimeout(Process process);
 
     @Override public final void run() {
-      // don't destroy commands that have already been destroyed
       Process process = Command.this.process;
-      if (destroyed) {
-        return;
-      }
+
+      // don't do anything if we have already destroyed this command
+      if (destroyed) { return; }
 
       if (timedOut()) {
         onTimeout(process);
       } else {
-        // if the kill time has been pushed back, reschedule
+        // reschedule the kill operation
         timer.schedule(this, System.nanoTime() - timeoutNanoTime, TimeUnit.NANOSECONDS);
       }
     }
