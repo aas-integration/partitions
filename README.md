@@ -36,7 +36,7 @@ $ ./vip p -f path/to/corpus.json -t path/to/out-folder -v -o projects.json
 
 ## Output
 
-Please look at `projects.json` as an example of a json file produced by this project.
+Please look at `projects.json`. This is as an example of a json file produced by this project.
 
 
 
