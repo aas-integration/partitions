@@ -6,19 +6,22 @@ import com.github.rvesse.airline.annotations.Option;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Ints;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vesperin.base.Source;
 import com.vesperin.partition.BasicCli;
 import com.vesperin.partition.spi.Git;
+import com.vesperin.partition.utils.GroupMaker;
 import com.vesperin.partition.utils.IO;
 import com.vesperin.partition.utils.Sources;
+import com.vesperin.partition.utils.WordMaker;
 import com.vesperin.text.Corpus;
 import com.vesperin.text.Grouping;
 import com.vesperin.text.Introspector;
-import com.vesperin.text.Partition;
 import com.vesperin.text.Project;
 import com.vesperin.text.Selection;
+import com.vesperin.text.spelling.StopWords;
 import com.vesperin.text.spi.BasicExecutionMonitor;
 import com.vesperin.text.spi.ExecutionMonitor;
 import com.vesperin.text.tokenizers.Tokenizers;
@@ -29,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -61,6 +65,8 @@ public class ProcessProjects implements BasicCli.CliCommand {
   @Option(name = {"-s", "--scope"}, arity = 1, description = "Search scope: (c)lassname (default), (m)ethodname, method (b)ody")
   private String scope = "c";
 
+  @Option(name = {"-m", "--min"}, arity = 1, description = "Desired minimum of words shared by projects. Default is 3.")
+  private int overlap = 3;
 
 
   @Option(name = {"-v", "--verbose"}, description = "Prints logging messages")
@@ -118,11 +124,11 @@ public class ProcessProjects implements BasicCli.CliCommand {
           projectMetadata.add(entry);
         }
 
-        final WordsTokenizer tokenizer = tokenizer(scope);
-        if(Objects.isNull(tokenizer)){
-          System.err.println("ERROR: Unable to construct a tokenizer matching the given scope");
-          return -1;
-        }
+//        final WordsTokenizer tokenizer = tokenizer(scope, );
+//        if(Objects.isNull(tokenizer)){
+//          System.err.println("ERROR: Unable to construct a tokenizer matching the given scope");
+//          return -1;
+//        }
 
         final List<Project<Source>> projects = Lists.newArrayList();
         for(Map<String, Corpus<Source>> each : projectMetadata){
@@ -130,13 +136,22 @@ public class ProcessProjects implements BasicCli.CliCommand {
           final String          key = Iterables.get(each.keySet(), 0);
           final Corpus<Source>  val = Iterables.get(each.values(), 0);
 
+          final WordsTokenizer tokenizer = tokenizer(scope, key);
+          if(Objects.isNull(tokenizer)){
+            System.err.println("ERROR: Unable to construct a tokenizer matching the given scope");
+            return -1;
+          }
+
           projects.add(Project.createProject(key, val, tokenizer));
 
         }
 
         final List<List<Project<Source>>> pGroups = Lists.newArrayList();
 
-        final Grouping.Groups groups = Grouping.groupProjects(projects);
+        final Map<String, Project<Source>> index = new HashMap<>();
+        projects.forEach(p -> index.put(p.name(), p));
+
+        final Grouping.Groups groups = GroupMaker.makeGroups(overlap, projects);
         for(Grouping.Group each : groups){
           final List<Project<Source>> pList = Lists.newArrayList();
           for(Object o : each){
@@ -181,11 +196,14 @@ public class ProcessProjects implements BasicCli.CliCommand {
     return 0;
   }
 
-  private static WordsTokenizer tokenizer(String scope){
+  private static WordsTokenizer tokenizer(String scope, String name){
+
+    final Set<StopWords> words = WordMaker.generateStopWords(name);
+
     switch (scope){
-      case "c": return Tokenizers.tokenizeTypeDeclarationName();
-      case "m": return Tokenizers.tokenizeMethodDeclarationName();
-      case "b": return Tokenizers.tokenizeMethodDeclarationBody();
+      case "c": return Tokenizers.tokenizeTypeDeclarationName(words);
+      case "m": return Tokenizers.tokenizeMethodDeclarationName(words);
+      case "b": return Tokenizers.tokenizeMethodDeclarationBody(words);
       default: return null;
     }
   }
@@ -199,7 +217,13 @@ public class ProcessProjects implements BasicCli.CliCommand {
       for(List<Project<Source>> each : groups){
         final Set<String> words = Sets.newHashSet();
 
-        final Set<Selection.Word> ws = Partition.getCommonElements(each.stream().collect(Collectors.toSet()));
+        final List<Set<Word>> sorted = each.stream().sorted((a, b) -> Ints.compare(a.wordSet().size(), b.wordSet().size())).map(Project::wordSet).collect(Collectors.toList());
+
+        final Set<Selection.Word> ws = GroupMaker.getCommonElements(sorted);
+        if(ws.size() > 15){
+          System.out.print("");
+        }
+
         words.addAll(ws.stream().map(Word::element).collect(Collectors.toSet()));
 
         clusters.add(new Cluster(words, each.stream().map(Project::name).collect(Collectors.toSet())));
