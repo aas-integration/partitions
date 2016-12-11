@@ -76,16 +76,16 @@ public class WordMaker {
       "al", "hello", "fxaa", "tga", "recalc", "tu", "arff", "icon", "sfot",
       "uv", "lru", "ssao", "efx", "lepetit", "harri", "igle", "dof", "ogle", "like",
       "udp", "canva", "six", "fault", "codec", "combined", "perspective", "triangulate",
-      "radial", "shape", "mjpeg", "improve", "rotate", "tracking"
+      "radial", "shape", "mjpeg", "improve", "rotate", "tracking", "jogl"
 
     ).forEach(english::add);
 
 
     final StopWords general = StopWords.GENERAL;
     if(GROUP_ONE.contains(lowercase)){
-      getGlossaryOne().forEach(general::add);
-    } else if(GROUP_TWO.contains(lowercase)){
       getGlossaryTwo().forEach(general::add);
+    } else if(GROUP_TWO.contains(lowercase)){
+      getGlossaryOne().forEach(general::add);
     }
 
     return Sets.newHashSet(english, StopWords.JAVA, general);
