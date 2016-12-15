@@ -35,20 +35,20 @@ public class GroupMaker {
    * @param <T> type of elements stored in a project.
    * @return a new group of groups.
    */
-  public static <T> Grouping.Groups makeGroups(int overlap, List<Project<T>> projects){
+  public static Grouping.Groups makeGroups(int overlap, List<Project> projects){
 
     final int threshold = Math.min(Math.max(Math.max(0, overlap), OVERLAP), MAX_OVERLAP);
 
-    final Map<String, Project<T>>  map   = Maps.newHashMap();
+    final Map<String, Project>  map   = Maps.newHashMap();
     final Map<String, Set<String>> index = Maps.newHashMap();
     final Set<String> missed = Sets.newHashSet();
 
     projects.forEach(p -> map.put(p.name(), p));
 
-    for(Project<T> a : projects) {
-      Project<T> max = null;
+    for(Project a : projects) {
+      Project max = null;
 
-      for(Project<T> b: projects) {
+      for(Project b: projects) {
         if(Objects.equals(a, b)) continue;
 
         if(Objects.isNull(max)){
@@ -101,8 +101,8 @@ public class GroupMaker {
     final List<Grouping.Group> groups = Lists.newArrayList();
     for(String key : index.keySet()){
       final Grouping.Group group = Grouping.newGroup();
-      final Project<T> head = map.get(key);
-      final Set<Project<T>> tail = index.get(key).stream()
+      final Project head = map.get(key);
+      final Set<Project> tail = index.get(key).stream()
         .map(map::get)
         .collect(Collectors.toSet());
 

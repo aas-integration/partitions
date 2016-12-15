@@ -1,10 +1,20 @@
 package com.vesperin.partition.utils;
 
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
 import com.vesperin.text.spelling.StopWords;
+import com.vesperin.text.spi.BasicExecutionMonitor;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -59,7 +69,7 @@ public class WordMaker {
     return GLOSSARY_TWO;
   }
 
-  public static Set<StopWords> generateStopWords(String name){
+  public static Set<StopWords> generateStopWords(String name, Path stops){
 
     final String lowercase = name.toLowerCase(Locale.ENGLISH);
 
@@ -76,20 +86,42 @@ public class WordMaker {
       "al", "hello", "fxaa", "tga", "recalc", "tu", "arff", "icon", "sfot",
       "uv", "lru", "ssao", "efx", "lepetit", "harri", "igle", "dof", "ogle", "like",
       "udp", "canva", "six", "fault", "codec", "combined", "perspective", "triangulate",
-      "radial", "shape", "mjpeg", "improve", "rotate", "tracking", "jogl"
+      "radial", "shape", "mjpeg", "improve", "rotate", "tracking", "jogl", "image", "noise"
 
     ).forEach(english::add);
 
 
     final StopWords general = StopWords.GENERAL;
-    if(GROUP_ONE.contains(lowercase)){
-      getGlossaryTwo().forEach(general::add);
-    } else if(GROUP_TWO.contains(lowercase)){
-      getGlossaryOne().forEach(general::add);
+    if(!Objects.isNull(stops) && Files.exists(stops)){
+
+      // todo read file once
+      BasicExecutionMonitor.get().info("Reading " + Jsons.STOPS + " file.");
+
+      Gson gson = new Gson();
+      final JsonReader reader;
+      try {
+        reader = new JsonReader(new FileReader(stops.toFile()));
+        final Map<String, List<String>> records = gson.fromJson(reader, Map.class);
+
+        for(String key : records.keySet()){
+          final List<String> val = records.get(key);
+          general.addAll(val);
+        }
+
+      } catch (FileNotFoundException e) {
+        BasicExecutionMonitor.get().error("Unable to read " + stops.toFile().getName(), e);
+      }
+
+    } else {
+      if(GROUP_ONE.contains(lowercase)){
+        getGlossaryTwo().forEach(general::add);
+      } else if(GROUP_TWO.contains(lowercase)){
+        getGlossaryOne().forEach(general::add);
+      }
     }
+
 
     return Sets.newHashSet(english, StopWords.JAVA, general);
   }
-
 
 }

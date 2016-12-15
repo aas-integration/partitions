@@ -3,38 +3,29 @@ package com.vesperin.partition.cmds;
 import com.github.rvesse.airline.HelpOption;
 import com.github.rvesse.airline.annotations.Command;
 import com.github.rvesse.airline.annotations.Option;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.vesperin.base.Source;
 import com.vesperin.partition.BasicCli;
 import com.vesperin.partition.spi.Git;
 import com.vesperin.partition.utils.GroupMaker;
-import com.vesperin.partition.utils.IO;
-import com.vesperin.partition.utils.Sources;
-import com.vesperin.partition.utils.WordMaker;
-import com.vesperin.text.Corpus;
+import com.vesperin.partition.utils.Projects;
 import com.vesperin.text.Grouping;
-import com.vesperin.text.Introspector;
 import com.vesperin.text.Project;
 import com.vesperin.text.Selection;
-import com.vesperin.text.spelling.StopWords;
 import com.vesperin.text.spi.BasicExecutionMonitor;
 import com.vesperin.text.spi.ExecutionMonitor;
-import com.vesperin.text.tokenizers.Tokenizers;
-import com.vesperin.text.tokenizers.WordsTokenizer;
 
 import javax.inject.Inject;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -68,6 +59,14 @@ public class ProcessProjects implements BasicCli.CliCommand {
   @Option(name = {"-m", "--min"}, arity = 1, description = "Desired minimum of words shared by projects. Default is 3.")
   private int overlap = 3;
 
+  @Option(name = {"-g", "--groupby"}, arity = 1,
+    description = "Grouping strategy: (0) WordSet intersection -- default, (1) WordSet similarity, and (2) Kmeans")
+  private int grouping = 0;
+
+
+  @Option(name = {"-k", "--topk"}, arity = 1, description = "Select top k words from each project. Default is 75.")
+  private int topk = 75;
+
 
   @Option(name = {"-v", "--verbose"}, description = "Prints logging messages")
   private boolean verbose = false;
@@ -92,8 +91,8 @@ public class ProcessProjects implements BasicCli.CliCommand {
         }
 
 
-        if(verbose){ Introspector.enableMonitor(); } else {
-          Introspector.disableMonitor();
+        if(verbose){ MONITOR.enable(); } else {
+          MONITOR.disable();
         }
 
         final Path corpusJson = Paths.get(from).toAbsolutePath();
@@ -118,50 +117,18 @@ public class ProcessProjects implements BasicCli.CliCommand {
           return -1;
         }
 
-        final List<Map<String, Corpus<Source>>> projectMetadata = Lists.newArrayList();
+        final List<Project> projects = Projects.buildProjects(topk, scope, outDir, projectNames);
 
-        for(String name : projectNames){
-          final Path            start   = Paths.get(outDir.toFile().getAbsolutePath() + "/" + name);
+        final List<List<Project>> pGroups = Lists.newArrayList();
 
-          final Corpus<Source>  corpus  = Corpus.ofSources();
-          corpus.addAll(Sources.from(IO.collectFiles(start, "java", "Test", "test", "package-info" )));
-
-          final Map<String, Corpus<Source>> entry = Collections.singletonMap(name, corpus);
-          projectMetadata.add(entry);
-        }
-
-//        final WordsTokenizer tokenizer = tokenizer(scope, );
-//        if(Objects.isNull(tokenizer)){
-//          System.err.println("ERROR: Unable to construct a tokenizer matching the given scope");
-//          return -1;
-//        }
-
-        final List<Project<Source>> projects = Lists.newArrayList();
-        for(Map<String, Corpus<Source>> each : projectMetadata){
-
-          final String          key = Iterables.get(each.keySet(), 0);
-          final Corpus<Source>  val = Iterables.get(each.values(), 0);
-
-          final WordsTokenizer tokenizer = tokenizer(scope, key);
-          if(Objects.isNull(tokenizer)){
-            System.err.println("ERROR: Unable to construct a tokenizer matching the given scope");
-            return -1;
-          }
-
-          projects.add(Project.createProject(key, val, tokenizer));
-
-        }
-
-        final List<List<Project<Source>>> pGroups = Lists.newArrayList();
-
-        final Map<String, Project<Source>> index = new HashMap<>();
+        final Map<String, Project> index = new HashMap<>();
         projects.forEach(p -> index.put(p.name(), p));
 
-        final Grouping.Groups groups = GroupMaker.makeGroups(overlap, projects);
+        final Grouping.Groups groups = groupBy(grouping, overlap, projects);
         for(Grouping.Group each : groups){
-          final List<Project<Source>> pList = Lists.newArrayList();
+          final List<Project> pList = Lists.newArrayList();
           for(Object o : each){
-            final Project<Source> p = (Project<Source>) o;
+            final Project p = (Project) o;
             pList.add(p);
           }
 
@@ -202,25 +169,22 @@ public class ProcessProjects implements BasicCli.CliCommand {
     return 0;
   }
 
-  private static WordsTokenizer tokenizer(String scope, String name){
-
-    final Set<StopWords> words = WordMaker.generateStopWords(name);
-
-    switch (scope){
-      case "c": return Tokenizers.tokenizeTypeDeclarationName(words);
-      case "m": return Tokenizers.tokenizeMethodDeclarationName(words);
-      case "b": return Tokenizers.tokenizeMethodDeclarationBody(words);
-      default: return null;
+  private static Grouping.Groups groupBy(int grouping, int overlap, List<Project> projects){
+    switch (grouping){
+      case 0: return Grouping.groupProjectsBySetIntersection(overlap, projects);
+      case 1: return Grouping.groupProjectsBySetSimilarity(overlap, projects);
+      case 2: return Grouping.groupProjectsByKmeans(projects);
+      default: throw new NoSuchElementException("Unknown clustering strategy: " + grouping);
     }
   }
 
   private static class Clusters {
     List<Cluster> clusters;
 
-    Clusters(List<List<Project<Source>>> groups){
+    Clusters(List<List<Project>> groups){
       clusters = Lists.newArrayList();
 
-      for(List<Project<Source>> each : groups){
+      for(List<Project> each : groups){
         final Set<String> words = Sets.newHashSet();
 
         final List<Set<Word>> sorted = each.stream().sorted((a, b) -> Ints.compare(a.wordSet().size(), b.wordSet().size())).map(Project::wordSet).collect(Collectors.toList());

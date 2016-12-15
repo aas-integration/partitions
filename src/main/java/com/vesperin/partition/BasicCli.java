@@ -3,6 +3,7 @@ package com.vesperin.partition;
 import com.github.rvesse.airline.Cli;
 import com.github.rvesse.airline.builder.CliBuilder;
 import com.github.rvesse.airline.parser.errors.ParseException;
+import com.vesperin.partition.cmds.CommonWords;
 import com.vesperin.partition.cmds.ProcessProjects;
 
 import java.util.Objects;
@@ -123,6 +124,7 @@ public interface BasicCli {
     return buildCli(Cli.<CliCommand>builder("vip")
       .withDescription("Project Partitioning CLI")
       .withCommand(ProcessProjects.class)
+      .withCommand(CommonWords.class)
     );
   }
 
