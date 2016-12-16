@@ -73,60 +73,67 @@ public class WordMaker {
   }
 
   public static Set<StopWords> generateStopWords(String name, Path stops){
-    if(!STOPS.isEmpty()) { return STOPS; } else {
+    if(!STOPS.isEmpty()) {
+      BasicExecutionMonitor.get().info("Reusing an already populated set of stop words");
+      return STOPS;
+    } else {
 
-    }
-    final String lowercase = name.toLowerCase(Locale.ENGLISH);
+      final String lowercase = name.toLowerCase(Locale.ENGLISH);
 
-    final StopWords english = StopWords.ENGLISH;
+      final StopWords english = StopWords.ENGLISH;
 
-    Arrays.asList("ifd", "make", "wtum", "slic", "zhang", "three",
-      "rodrigue", "estimate", "il", "coef", "nothing", "omni", "webcam",
-      "canny", "association", "fundamental", "example", "se", "nto",
-      "associated", "naive", "cloud", "alg", "weighted",
-      "five", "enhanced", "purpose", "just", "brief", "dda",
-      "pto", "peak", "prune", "mean", "essentially", "extremely", "benefit",
-      "analysis", "otsu", "moment", "matching", "started", "student", "human",
-      "argbargb", "ntree", "arg", "dna", "ssaoui", "gle", "ik", "ir",
-      "al", "hello", "fxaa", "tga", "recalc", "tu", "arff", "icon", "sfot",
-      "uv", "lru", "ssao", "efx", "lepetit", "harri", "igle", "dof", "ogle", "like",
-      "udp", "canva", "six", "fault", "codec", "combined", "perspective", "triangulate",
-      "radial", "shape", "mjpeg", "improve", "rotate", "tracking", "jogl", "image", "noise"
+      Arrays.asList("ifd", "make", "wtum", "slic", "zhang", "three",
+        "rodrigue", "estimate", "il", "coef", "nothing", "omni", "webcam",
+        "canny", "association", "fundamental", "example", "se", "nto",
+        "associated", "naive", "cloud", "alg", "weighted",
+        "five", "enhanced", "purpose", "just", "brief", "dda",
+        "pto", "peak", "prune", "mean", "essentially", "extremely", "benefit",
+        "analysis", "otsu", "moment", "matching", "started", "student", "human",
+        "argbargb", "ntree", "arg", "dna", "ssaoui", "gle", "ik", "ir",
+        "al", "hello", "fxaa", "tga", "recalc", "tu", "arff", "icon", "sfot",
+        "uv", "lru", "ssao", "efx", "lepetit", "harri", "igle", "dof", "ogle", "like",
+        "udp", "canva", "six", "fault", "codec", "combined", "perspective", "triangulate",
+        "radial", "shape", "mjpeg", "improve", "rotate", "tracking", "jogl", "image", "noise"
 
-    ).forEach(english::add);
+      ).forEach(english::add);
 
 
-    final StopWords general = StopWords.GENERAL;
-    if(!Objects.isNull(stops) && Files.exists(stops)){
+      final StopWords general = StopWords.GENERAL;
+      if(!Objects.isNull(stops) && Files.exists(stops)){
 
-      // todo read file once
-      BasicExecutionMonitor.get().info("Reading " + Jsons.STOPS + " file.");
+        // todo read file once
+        BasicExecutionMonitor.get().info("Reading " + Jsons.STOPS + " file.");
 
-      Gson gson = new Gson();
-      final JsonReader reader;
-      try {
-        reader = new JsonReader(new FileReader(stops.toFile()));
-        final Map<String, List<String>> records = gson.fromJson(reader, Map.class);
+        Gson gson = new Gson();
+        final JsonReader reader;
+        try {
+          reader = new JsonReader(new FileReader(stops.toFile()));
+          final Map<String, List<String>> records = gson.fromJson(reader, Map.class);
 
-        for(String key : records.keySet()){
-          final List<String> val = records.get(key);
-          general.addAll(val);
+          for(String key : records.keySet()){
+            final List<String> val = records.get(key);
+            general.addAll(val);
+          }
+
+        } catch (FileNotFoundException e) {
+          BasicExecutionMonitor.get().error("Unable to read " + stops.toFile().getName(), e);
         }
 
-      } catch (FileNotFoundException e) {
-        BasicExecutionMonitor.get().error("Unable to read " + stops.toFile().getName(), e);
+      } else {
+        if(GROUP_ONE.contains(lowercase)){
+          getGlossaryTwo().forEach(general::add);
+        } else if(GROUP_TWO.contains(lowercase)){
+          getGlossaryOne().forEach(general::add);
+        }
       }
 
-    } else {
-      if(GROUP_ONE.contains(lowercase)){
-        getGlossaryTwo().forEach(general::add);
-      } else if(GROUP_TWO.contains(lowercase)){
-        getGlossaryOne().forEach(general::add);
-      }
+
+      STOPS.add(english);
+      STOPS.add(StopWords.JAVA);
+      STOPS.add(general);
+
+      return STOPS;
     }
-
-
-    return Sets.newHashSet(english, StopWords.JAVA, general);
   }
 
 }
