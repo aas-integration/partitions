@@ -8,6 +8,8 @@ import com.vesperin.text.Introspector;
 import com.vesperin.text.Project;
 import com.vesperin.text.Selection;
 import com.vesperin.text.spelling.StopWords;
+import com.vesperin.text.spi.BasicExecutionMonitor;
+import com.vesperin.text.spi.ExecutionMonitor;
 import com.vesperin.text.tokenizers.Tokenizers;
 import com.vesperin.text.tokenizers.WordsTokenizer;
 
@@ -25,6 +27,9 @@ import java.util.stream.Collectors;
  * @author Huascar Sanchez
  */
 public class Projects {
+
+  private static final ExecutionMonitor MONITOR = BasicExecutionMonitor.get();
+
   private enum Relevance { FREQUENCY, TYPICALITY }
   private Projects(){}
 
@@ -47,6 +52,8 @@ public class Projects {
 
       final Corpus<Source>  corpus  = Corpus.ofSources();
       corpus.addAll(Sources.from(IO.collectFiles(start, "java", "Test", "test", "package-info" )));
+
+      MONITOR.info(String.format("Introspected %d source code files from %s", corpus.size(), name));
 
       final Map<String, Corpus<Source>> entry = Collections.singletonMap(name, corpus);
       projectMetadata.add(entry);

@@ -11,6 +11,7 @@ import com.google.gson.GsonBuilder;
 import com.vesperin.partition.BasicCli;
 import com.vesperin.partition.spi.Git;
 import com.vesperin.partition.utils.Projects;
+import com.vesperin.partition.utils.Threads;
 import com.vesperin.text.Grouping;
 import com.vesperin.text.Project;
 import com.vesperin.text.Selection;
@@ -32,8 +33,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.vesperin.text.Selection.Word;
@@ -46,7 +45,7 @@ import static java.nio.file.StandardOpenOption.CREATE;
 @SuppressWarnings("FieldCanBeLocal") @Command(name = "p", description = "Process a list of projects")
 public class ProcessProjects implements BasicCli.CliCommand {
 
-  private final ExecutionMonitor MONITOR = BasicExecutionMonitor.get();
+  private static final ExecutionMonitor MONITOR = BasicExecutionMonitor.get();
 
   @Inject HelpOption<ProcessProjects> help;
 
@@ -128,12 +127,17 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
         final List<Project> projects = Projects.buildProjects(topk, scope, outDir, projectNames);
 
+        MONITOR.info(String.format("Processing %d projects.", projects.size()));
+
         final Map<String, Project> index = new HashMap<>();
         projects.forEach(p -> index.put(p.name(), p));
 
         if(inc){
 
-          MONITOR.info("Ignoring " + out + " since we are clustering projects in small steps; e.g., step1.json");
+          MONITOR.info("Ignoring " +
+            out +
+            " since we are clustering projects in small steps; e.g., step1.json"
+          );
 
           final Collection<Callable<Void>> tasks = Lists.newArrayList();
 
@@ -143,11 +147,11 @@ public class ProcessProjects implements BasicCli.CliCommand {
               .limit(step)
               .collect(Collectors.toList());
 
-            final String name = Objects.isNull(out) ? null : "step" + step + ".json";
-
+            final String filename = Objects.isNull(out) ? null : "step" + step + ".json";
+            final String stepStr  = "Step " + step;
             tasks.add(() -> {
               try {
-                formClusters(name, sublist);
+                formClusters(stepStr, filename, sublist);
               } catch (IOException e) {
                 MONITOR.error("Unable to form cluster", e);
               }
@@ -157,7 +161,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
           }
 
-          final ExecutorService service = scaleExecutor(projects.size());
+          final ExecutorService service = Threads.scaleExecutor(projects.size());
 
           try {
 
@@ -167,10 +171,10 @@ public class ProcessProjects implements BasicCli.CliCommand {
             Thread.currentThread().interrupt();
           }
 
-          shutdownService(service);
+          Threads.shutdownService(service);
 
         } else {
-          formClusters(out, projects);
+          formClusters("Step 0", out, projects);
         }
 
 
@@ -184,39 +188,8 @@ public class ProcessProjects implements BasicCli.CliCommand {
     return 0;
   }
 
-  private static ExecutorService scaleExecutor(int scale){
-    final int cpus       = Runtime.getRuntime().availableProcessors();
-    scale                = scale > 10 ? 10 : scale;
-    final int maxThreads = ((cpus * scale) > 0 ? (cpus * scale) : 1);
 
-    return Executors.newFixedThreadPool(maxThreads);
-  }
-
-  private static void shutdownService(ExecutorService service){
-    shutdownService(500, service);
-  }
-
-  private static void shutdownService(long timeout, ExecutorService service){
-    // wait for all of the executor threads to finish
-    service.shutdown();
-
-    try {
-      if (!service.awaitTermination(timeout, TimeUnit.SECONDS)) {
-        // pool didn't terminate after the first try
-        service.shutdownNow();
-      }
-
-      if (!service.awaitTermination(timeout * 2, TimeUnit.SECONDS)) {
-        // pool didn't terminate after the second try
-        System.out.println("ERROR: executor service did not terminate after a second try.");
-      }
-    } catch (InterruptedException ex) {
-      service.shutdownNow();
-      Thread.currentThread().interrupt();
-    }
-  }
-
-  private void formClusters(String out, List<Project> projects) throws IOException {
+  private void formClusters(String step, String out, List<Project> projects) throws IOException {
     final List<List<Project>> pGroups = Lists.newArrayList();
     final Grouping.Groups groups = groupBy(grouping, overlap, projects);
 
@@ -231,13 +204,14 @@ public class ProcessProjects implements BasicCli.CliCommand {
     }
 
 
-    final Clusters clusters = new Clusters(pGroups);
+    final Clusters clusters = new Clusters(step, pGroups);
     final Gson gson     = new GsonBuilder()
       .setPrettyPrinting()
       .create();
 
     if(Objects.isNull(out)){
-      MONITOR.info(gson.toJson(clusters));
+
+      MONITOR.info((step + "\n") + gson.toJson(clusters));
 
     } else {
 
@@ -251,7 +225,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
         APPEND
       );
 
-      MONITOR.info(String.format("%s was created.", out));
+      MONITOR.info(String.format("%s: %s was created.", step, out));
     }
   }
 
@@ -267,7 +241,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
   private static class Clusters {
     List<Cluster> clusters;
 
-    Clusters(List<List<Project>> groups){
+    Clusters(String step, List<List<Project>> groups){
       clusters = Lists.newArrayList();
 
       for(List<Project> each : groups){
@@ -279,15 +253,27 @@ public class ProcessProjects implements BasicCli.CliCommand {
           .collect(Collectors.toList());
 
         final Set<Selection.Word> ws = Samples.getCommonElements(sorted);
-        if(ws.size() > 15){
-          System.out.print("");
-        }
 
         words.addAll(ws.stream().map(Word::element).collect(Collectors.toSet()));
 
         clusters.add(new Cluster(words, each.stream().map(Project::name).collect(Collectors.toSet())));
       }
 
+      extraInfo(step, clusters);
+    }
+
+    private static void extraInfo(String step, List<Cluster> clusters) {
+      if(MONITOR.isActive()){ // placed on purpose to avoid extra processing
+
+        MONITOR.info(String.format("%s: Produced %d clusters", step, clusters.size()));
+
+        final int avgSize     = (clusters.stream().mapToInt(s -> s.projectSet().size())).sum()/(clusters.size());
+        final int singletons  = (clusters.stream().filter(c -> c.projectSet().size() == 1).mapToInt(s -> s.projectSet().size())).sum();
+
+        MONITOR.info(String.format("%s: Cluster average size: %d ", step, avgSize));
+        MONITOR.info(String.format("%s: Total number of singleton clusters: %d ", step, singletons));
+
+      }
     }
 
 

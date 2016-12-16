@@ -24,6 +24,9 @@ public class WordMaker {
   private static final Set<String> GROUP_ONE = Sets.newHashSet("boofcv", "catalano-framework", "imglib2", "imgscalr", "imagej", "thumbnailinator");
   private static final Set<String> GROUP_TWO = Sets.newHashSet("dyn4j", "jreactphysics3d", "react", "jmonkeyengine", "jbox2d");
 
+  private static final Set<StopWords> STOPS = Sets.newHashSet();
+
+
   private static final Set<String> GLOSSARY_ONE = Sets.newHashSet("addition", "area",
     "aspect", "ratio", "greyscale", "mapping", "bayer", "filter", "bilinear",
     "interpolation", "bitmap", "image", "blurring", "bounding", "brightness",
@@ -70,7 +73,9 @@ public class WordMaker {
   }
 
   public static Set<StopWords> generateStopWords(String name, Path stops){
+    if(!STOPS.isEmpty()) { return STOPS; } else {
 
+    }
     final String lowercase = name.toLowerCase(Locale.ENGLISH);
 
     final StopWords english = StopWords.ENGLISH;

@@ -1,0 +1,133 @@
+{
+  "projects": {
+    "spectator": {
+      "name": "spectator",
+      "git-url": "https://github.com/Netflix/spectator.git",
+      "git-ref": "0a0271a53194047df6a3277281c2782b29269fbb"
+    },
+    "dynomite-manager": {
+      "name": "dynomite-manager",
+      "git-url": "https://github.com/Netflix/dynomite-manager.git",
+      "git-ref": "dfb2df9e073b9a8f232802778d3aea46460e1078"
+    },
+    "inviso": {
+      "name": "inviso",
+      "git-url": "https://github.com/Netflix/inviso.git",
+      "git-ref": "2bb256383e82aef6c11524880168d882a887edc5"
+    },
+    "edda-client": {
+      "name": "edda-client",
+      "git-url": "https://github.com/Netflix/edda-client.git",
+      "git-ref": "4d3eeb81fc3e5da6064b70661f93c2b6eaa0ccc4"
+    },
+    "Raigad" : {
+      "name": "Raigad",
+      "git-url": "https://github.com/Netflix/Raigad.git",
+      "git-ref": "7791e955444a8a1668b4864645aa6e340e9da01b"
+    },
+    "Prana" : {
+      "name": "Prana",
+      "git-url": "https://github.com/Netflix/Prana.git",
+      "git-ref": "4757cfa44021bc6e834990cf98a343a7983b6605"
+    },
+    "ocelli" : {
+      "name": "ocelli",
+      "git-url": "https://github.com/Netflix/ocelli.git",
+      "git-ref": "071b370bab981d429ff0718ebdb7dadb0b4a7df1"
+    },
+    "iep" : {
+      "name": "iep",
+      "git-url": "https://github.com/Netflix/iep.git",
+      "git-ref": "37c6f7fd4bcbd58ceb39f0df983ae2aede59014b"
+    },
+    "boofcv": {
+      "name" : "boofcv",
+      "git-url": "https://github.com/lessthanoptimal/BoofCV.git",
+      "git-ref": "16fff968dbbe07af4a9cb14395a89cde18ffb72e",
+      "build": "gradle compileJava",
+      "clean": "gradle clean"
+    },
+    "catalano": {
+      "name" : "catalano",
+      "git-url": "https://github.com/DiegoCatalano/Catalano-Framework.git",
+      "git-ref": "381b7c29ef73bca1e5479fc715fb285e6697d7bd",
+      "build-dir": "Catalano.Image",
+      "build": "ant jar",
+      "clean": "ant clean"
+    },
+
+    "imgscalr": {
+      "name" : "imgscalr",
+      "git-url": "https://github.com/thebuzzmedia/imgscalr.git",
+      "git-ref": "e1e1da77c12570f5c21d2f6ef42f0ce80c3fa092",
+      "build": "mvn compile",
+      "clean": "mvn clean"
+    },
+
+    "dyn4j": {
+      "name" : "dyn4j",
+      "git-url": "https://github.com/aas-integration/dyn4j.git",
+      "git-ref": "88073bd45b83ecdc61fc40b73baf4df1fa50411f",
+      "build": "ant build",
+      "clean": "ant clean"
+    },
+
+    "jreactphysics3d": {
+      "name": "jreactphysics3d",
+      "git-url": "https://github.com/kovertopz/jReactPhysics3D.git",
+      "git-ref": "8da0120f5fa2254a7e98a14f3446d97096bb0fd7",
+      "build": "mvn package -Dmaven.test.skip=true",
+      "clean": "mvn clean"
+    },
+
+
+    "react": {
+      "name": "react",
+      "git-url": "https://github.com/flow/react.git",
+      "git-ref": "e8f7ee5ec666d2d1783c8a16b9cbd49bc11f037c",
+      "build": "gradle compileJava",
+      "clean": "gradle clean"
+    },
+
+
+    "jmonkeyengine": {
+      "name": "jmonkeyengine",
+      "git-url": "https://github.com/jMonkeyEngine/jmonkeyengine.git",
+      "git-ref": "977610bbd7d9f000e4f79804465eec6a743b3789",
+      "build": "gradle compileJava",
+      "clean": "gradle clean"
+    },
+
+    "jbox2d": {
+      "name": "jbox2d",
+      "git-url": "https://github.com/jbox2d/jbox2d.git",
+      "git-ref": "3746b69de71d3d23818cd4367b884c020c194981",
+      "build": "mvn compile -pl !jbox2d-testbed-jogl,!jbox2d-testbed-javafx",
+      "clean": "mvn clean"
+    },
+
+    "imagej": {
+      "name": "imagej",
+      "zip-url": "https://imagej.nih.gov/ij/download/src/ij151h-src.zip",
+      "build-dir": "source",
+      "build": "ant build",
+      "clean": "ant clean"
+    },
+
+    "imglib2": {
+      "name": "imglib2",
+      "git-url": "https://github.com/imglib/imglib2.git",
+      "git-ref": "16af41a9beec79642ce0728ed198defa46c6e0dd",
+      "build": "mvn compile",
+      "clean": "mvn clean"
+    },
+
+    "thumbnailinator": {
+      "name": "thumbnailinator",
+      "git-url": "https://github.com/coobird/thumbnailator.git",
+      "git-ref": "270851897110ec21b5b6fa8b9ba031abb98b9749",
+      "build": "mvn compile",
+      "clean": "mvn clean"
+    }
+  }
+}
