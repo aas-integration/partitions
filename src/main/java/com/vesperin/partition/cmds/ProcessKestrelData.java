@@ -10,6 +10,7 @@ import com.vesperin.partition.utils.Threads;
 import com.vesperin.text.Corpus;
 import com.vesperin.text.Grouping;
 import com.vesperin.text.Introspector;
+import com.vesperin.text.Selection.Word;
 import com.vesperin.text.spelling.StopWords;
 import com.vesperin.text.spi.BasicExecutionMonitor;
 import com.vesperin.text.spi.ExecutionMonitor;
@@ -24,7 +25,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -108,11 +108,8 @@ public class ProcessKestrelData implements BasicCli.CliCommand {
 
       Threads.shutdownService(service);
 
-
-      final Grouping.Groups groups = Introspector.partitionCorpus(
-        global,
-        tokenizer
-      );
+      final List<Word> words = Introspector.typicalityQuery(500, global, tokenizer);
+      final Grouping.Groups groups = Grouping.groupDocsUsingWords(words);
 
       if(MONITOR.isActive()){
 
@@ -144,7 +141,7 @@ public class ProcessKestrelData implements BasicCli.CliCommand {
           final String content = matchPattern.group(1);
           int idx = content.lastIndexOf(":");
           final String classname = content.substring(idx + 3, content.length() - 2);
-          if(classname.isEmpty() || classname.length() == 1)
+          if(classname.isEmpty() || classname.length() < 3)
             continue;
 
           local.add(content.substring(idx + 3, content.length() - 2));
