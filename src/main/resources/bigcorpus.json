@@ -80,7 +80,6 @@
       "clean": "mvn clean"
     },
 
-
     "react": {
       "name": "react",
       "git-url": "https://github.com/flow/react.git",
@@ -128,6 +127,225 @@
       "git-ref": "270851897110ec21b5b6fa8b9ba031abb98b9749",
       "build": "mvn compile",
       "clean": "mvn clean"
+    },
+
+    "Surus" : {
+      "name": "Surus",
+      "git-url": "https://github.com/Netflix/Surus.git",
+      "git-ref": "3f68bd384e2267ca00602febe4a382a55a40eb4d",
+      "build": "mvn compile",
+      "clean": "mvn clean"
+    },
+
+    "Fenzo": {
+      "name": "Fenzo",
+      "git-url": "https://github.com/Netflix/Fenzo.git",
+      "git-ref": "e0d43a77f1b2011a19189ed6c28b8b846cbc7a5c"
+    },
+    "rx-aws-java-sdk": {
+      "name": "rx-aws-java-sdk",
+      "git-url": "https://github.com/Netflix/rx-aws-java-sdk.git",
+      "git-ref": "9fe855b915c4225610515159d1bc9d2208f789ea"
+    },
+    "runtime-health": {
+      "name": "runtime-health",
+      "git-url": "https://github.com/Netflix/runtime-health.git",
+      "git-ref": "8b757f75bbf65f0af1214f899d3e21e599a1d61b"
+    },
+    "reactivesocket-examples": {
+      "name": "reactivesocket-examples",
+      "git-url": "https://github.com/Netflix/reactivesocket-examples.git",
+      "git-ref": "0559ea854408c0e3abf83626cc2164f706306486"
+    },
+    "q": {
+      "name": "q",
+      "git-url": "https://github.com/Netflix/q.git",
+      "git-ref": "6dee8860d4f94a31ced4207c0a9d02dbaccea964"
+    },
+    "rewrite": {
+      "name": "rewrite",
+      "git-url": "https://github.com/Netflix/rewrite.git",
+      "git-ref": "dc0275f69ad7850791ae6fcb48b908e3c2955dc5"
+    },
+    "dyno-queues": {
+      "name": "dyno-queues",
+      "git-url": "https://github.com/Netflix/dyno-queues.git",
+      "git-ref": "d670c5a0124a718cc1272fa752bbe96f33afe30f"
+    },
+    "hollow-reference-implementation": {
+      "name": "hollow-reference-implementation",
+      "git-url": "https://github.com/Netflix/hollow-reference-implementation.git",
+      "git-ref": "9f64326e885a63c9dbd27bc43c0eb4e4c43d1719"
+    },
+    "fundraiser": {
+      "name": "fundraiser",
+      "git-url": "https://github.com/square/fundraiser.git",
+      "git-ref": "e561f87832d8430dd8171e71b3f84fa5d0a01919"
+    },
+    "retrofit": {
+      "name": "retrofit",
+      "git-url": "https://github.com/square/retrofit.git",
+      "git-ref": "a77ed21bbcd2f4bd5b0f28d33928053351c6d133"
+    },
+    "pad": {
+      "name": "pad",
+      "git-url": "https://github.com/square/pad.git",
+      "git-ref": "ccbefcb4aebc2ab5e0a7881216212798c0dd50f4"
+    },
+    "pollexor": {
+      "name": "pollexor",
+      "git-url": "https://github.com/square/pollexor.git",
+      "git-ref": "9d83c5e42dc2e60b5a8c6f2e30c2344adf717b5f"
+    },
+    "okhttp": {
+      "name": "okhttp",
+      "git-url": "https://github.com/square/okhttp.git",
+      "git-ref": "dc5cbfd042768c86189dba01f52574a7493a62c6"
+    },
+    "otto": {
+      "name": "otto",
+      "git-url": "https://github.com/square/otto.git",
+      "git-ref": "7499e613443c488d4acc2ffc435df3519821e5e7"
+    },
+    "cascading2-protobufs": {
+      "name": "cascading2-protobufs",
+      "git-url": "https://github.com/square/cascading2-protobufs.git",
+      "git-ref": "8ac32d49bc2e7875c8ef7acc7824c7538d6dd626"
+    },
+    "dagger": {
+      "name": "dagger",
+      "git-url": "https://github.com/square/dagger.git",
+      "git-ref": "9888337e8ec606139bedecdd9543b25bc493c865"
+    },
+    "cascading-helpers": {
+      "name": "cascading-helpers",
+      "git-url": "https://github.com/square/cascading-helpers.git",
+      "git-ref": "24acc0271d99035fece7504f4d5401a5059b58cd"
+    },
+    "seismic": {
+      "name": "seismic",
+      "git-url": "https://github.com/square/seismic.git",
+      "git-ref": "8aa2828dbe2a9696464311f47dd9302035cf6829"
+    },
+    "tape": {
+      "name": "tape",
+      "git-url": "https://github.com/square/tape.git",
+      "git-ref": "20ba54f34da4effd8fb0546363bffa64c7d5e56d"
+    },
+    "protoparser": {
+      "name": "protoparser",
+      "git-url": "https://github.com/square/protoparser.git",
+      "git-ref": "8be66bb8fe6658b04741df0358daabca501f2524"
+    },
+    "javapoet": {
+      "name": "javapoet",
+      "git-url": "https://github.com/square/javapoet.git",
+      "git-ref": "9f64326e885a63c9dbd27bc43c0eb4e4c43d1719"
+    },
+    "mimecraft": {
+      "name": "mimecraft",
+      "git-url": "https://github.com/square/mimecraft.git",
+      "git-ref": "88f689c73972dde450961714ec4766378c777ad0"
+    },
+    "wire": {
+      "name": "wire",
+      "git-url": "https://github.com/square/wire.git",
+      "git-ref": "01c78368a363f5e434f4722110434e37810f7431"
+    },
+    "flow": {
+      "name": "flow",
+      "git-url": "https://github.com/square/hollow-reference-implementation.git",
+      "git-ref": "cbfaf17c0339f60c01c311771a018c818793fc96"
+    },
+    "secor": {
+      "name": "secor",
+      "git-url": "https://github.com/pinterest/secor.git",
+      "git-ref": "cf4acd1fc888a50f20a8706552c3baf90698c061"
+    },
+    "quasar-thrift": {
+      "name": "quasar-thrift",
+      "git-url": "https://github.com/pinterest/quasar-thrift.git",
+      "git-ref": "848de19fec2aa4b79f2269e0610d6f0ebe2ae21a"
+    },
+    "android-pdk": {
+      "name": "android-pdk",
+      "git-url": "https://github.com/pinterest/android-pdk.git",
+      "git-ref": "df21059e874503d2ac4cd3b64b005f15da2734db"
+    },
+    "terrapin": {
+      "name": "terrapin",
+      "git-url": "https://github.com/pinterest/terrapin.git",
+      "git-ref": "31a7362d6e915063c998828fc6406d4614d0cf6c"
+    },
+    "pinlater": {
+      "name": "pinlater",
+      "git-url": "https://github.com/pinterest/pinlater.git",
+      "git-ref": "283d0a04f22749d399791b255ab2c24b024e08db"
+    },
+    "jbender": {
+      "name": "jbender",
+      "git-url": "https://github.com/pinterest/jbender.git",
+      "git-ref": "d0aa989be2d0d15233c78201a0c501cbb3bf5aaf"
+    },
+    "facebook-android-sdk": {
+      "name": "facebook-android-sdk",
+      "git-url": "https://github.com/facebook/facebook-android-sdk.git",
+      "git-ref": "3c606b0efb837ffcc1006e83a09a72049b69dd28"
+    },
+    "swift": {
+      "name": "swift",
+      "git-url": "https://github.com/facebook/swift.git",
+      "git-ref": "8aeae8c8a0a492f29c3e7a2e39de4783fabd9b2e"
+    },
+    "nifty": {
+      "name": "nifty",
+      "git-url": "https://github.com/facebook/nifty.git",
+      "git-ref": "303c987ce839dc5acfe01d711496a63f766d6105"
+    },
+    "jcommon": {
+      "name": "jcommon",
+      "git-url": "https://github.com/facebook/jcommon.git",
+      "git-ref": "013f52a9e1f803b82990902de8e5cee395297d46"
+    },
+    "giraph": {
+      "name": "giraph",
+      "git-url": "https://github.com/facebook/giraph.git",
+      "git-ref": "82a86c2fea754e75e10e62be7dae009f23f343b8"
+    },
+    "buck": {
+      "name": "buck",
+      "git-url": "https://github.com/facebook/buck.git",
+      "git-ref": "b76a0f923d290abb6524d8fc77630bb381fa4378"
+    },
+    "rebound": {
+      "name": "rebound",
+      "git-url": "https://github.com/facebook/rebound.git",
+      "git-ref": "5017fc904cc9511384b69f79771386abf177bd37"
+    },
+    "easymock": {
+      "name": "easymock",
+      "git-url": "https://github.com/facebook/easymock.git",
+      "git-ref": "65cddb8e6b3e41372b1622b507d70ed094c663c1"
+    },
+    "conceal": {
+      "name": "conceal",
+      "git-url": "https://github.com/facebook/conceal.git",
+      "git-ref": "11f31d12c4327caf8ad1c2eb359bd6390c7d9216"
+    },
+    "proguard": {
+      "name": "proguard",
+      "git-url": "https://github.com/facebook/proguard.git",
+      "git-ref": "cb14075955f0fe752a2a37b942a012eaf85c6d3b"
+    },
+    "stetho": {
+      "name": "stetho",
+      "git-url": "https://github.com/facebook/stetho.git",
+      "git-ref": "bd3c6d3253ff99665d3cb4807fe85690285e3cd8"
+    },
+    "shimmer-android": {
+      "name": "shimmer-android",
+      "git-url": "https://github.com/facebook/shimmer-android.git",
+      "git-ref": "db4cd1a0056711f9b4b2442267c7fff139a8abe3"
     }
   }
 }
