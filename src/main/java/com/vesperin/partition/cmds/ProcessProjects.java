@@ -34,9 +34,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 import static com.vesperin.text.Selection.Word;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Huascar Sanchez
@@ -144,7 +145,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
           for(int step = 1; step <= n; step++){
             final List<Project> sublist = projects.stream()
               .limit(step)
-              .collect(Collectors.toList());
+              .collect(toList());
 
             final String filename = Objects.isNull(out) ? null : "step" + step + ".json";
             final String stepStr  = "Step " + step;
@@ -244,13 +245,23 @@ public class ProcessProjects implements BasicCli.CliCommand {
         final List<Set<Word>> sorted = each.stream()
           .sorted((a, b) -> Ints.compare(a.wordSet().size(), b.wordSet().size()))
           .map(Project::wordSet)
-          .collect(Collectors.toList());
+          .collect(toList());
 
         final Set<Selection.Word> ws = Samples.getCommonElements(sorted);
 
-        words.addAll(ws.stream().map(Word::element).collect(Collectors.toSet()));
+        words.addAll(ws.stream().map(Word::element).collect(toSet()));
 
-        clusters.add(new Cluster(words, each.stream().map(Project::name).collect(Collectors.toSet())));
+        if(!words.isEmpty()){ // only the ones with actual words
+          clusters.add(
+            new Cluster(
+              words,
+              each.stream()
+                .map(Project::name)
+                .collect(toSet())
+            )
+          );
+        }
+
       }
 
       extraInfo(step, clusters);
