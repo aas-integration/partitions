@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vesperin.partition.BasicCli;
 import com.vesperin.partition.spi.Git;
+import com.vesperin.partition.utils.IO;
 import com.vesperin.partition.utils.Jsons;
 import com.vesperin.partition.utils.Projects;
 import com.vesperin.text.Project;
@@ -24,8 +25,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -143,17 +142,10 @@ public class CommonWords implements BasicCli.CliCommand {
           final Path newFile = Paths.get(outDir.toFile().getAbsolutePath() + "/" + Jsons.STOPS);
           Files.deleteIfExists(newFile);
 
-          Files.write(
-            newFile,
-            gson.toJson(wordsMap).getBytes(),
-            CREATE,
-            APPEND
-          );
+          IO.writeFile(newFile, gson.toJson(wordsMap).getBytes());
 
           MONITOR.info(String.format("%s was created.", outDir.toFile().getAbsolutePath() + "/" + Jsons.STOPS));
         }
-
-
 
       } catch (Exception e){
         e.printStackTrace(System.err);

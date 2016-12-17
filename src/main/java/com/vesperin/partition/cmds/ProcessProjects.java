@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vesperin.partition.BasicCli;
 import com.vesperin.partition.spi.Git;
+import com.vesperin.partition.utils.IO;
 import com.vesperin.partition.utils.Projects;
 import com.vesperin.partition.utils.Threads;
 import com.vesperin.text.Grouping;
@@ -36,8 +37,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static com.vesperin.text.Selection.Word;
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
 
 /**
  * @author Huascar Sanchez
@@ -218,12 +217,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
       final Path newFile = Paths.get(out);
       Files.deleteIfExists(newFile);
 
-      Files.write(
-        newFile,
-        gson.toJson(clusters).getBytes(),
-        CREATE,
-        APPEND
-      );
+      IO.writeFile(newFile, gson.toJson(clusters).getBytes());
 
       MONITOR.info(String.format("%s: %s was created.", step, out));
     }
