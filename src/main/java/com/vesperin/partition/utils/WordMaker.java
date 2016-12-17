@@ -1,5 +1,6 @@
 package com.vesperin.partition.utils;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -108,7 +109,11 @@ public class WordMaker {
         final JsonReader reader;
         try {
           reader = new JsonReader(new FileReader(stops.toFile()));
-          final Map<String, List<String>> records = gson.fromJson(reader, Map.class);
+          Map<String, List<String>> records = gson.fromJson(reader, Map.class);
+
+          if(Objects.isNull(records)) { // gson.fromJson can return null
+            records = Maps.newHashMap();
+          }
 
           for(String key : records.keySet()){
             final List<String> val = records.get(key);
