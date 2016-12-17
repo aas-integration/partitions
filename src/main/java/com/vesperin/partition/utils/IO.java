@@ -7,10 +7,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.vesperin.text.spi.BasicExecutionMonitor;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -25,8 +23,6 @@ import java.util.stream.Collectors;
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
 
 /**
  * @author Huascar Sanchez
@@ -323,11 +319,10 @@ public class IO {
    * @param data content to write
    */
   public static void writeFile(Path filePath, byte[] data){
-    try (OutputStream out = new BufferedOutputStream(
-      Files.newOutputStream(filePath, CREATE, APPEND))) {
-      out.write(data, 0, data.length);
-    } catch (IOException x) {
-      BasicExecutionMonitor.get().error("Unexpected error", x);
+    try {
+      com.google.common.io.Files.write(data, filePath.toFile());
+    } catch (IOException e) {
+      BasicExecutionMonitor.get().error("Unable to create file", e);
     }
   }
 

@@ -1,14 +1,13 @@
 package com.vesperin.partition.utils;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.vesperin.text.spelling.StopWords;
 import com.vesperin.text.spi.BasicExecutionMonitor;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -109,10 +108,11 @@ public class WordMaker {
         final JsonReader reader;
         try {
           reader = new JsonReader(new FileReader(stops.toFile()));
-          Map<String, List<String>> records = gson.fromJson(reader, Map.class);
+          final Map<String, List<String>> records = gson.fromJson(reader, Map.class);
 
-          if(Objects.isNull(records)) { // gson.fromJson can return null
-            records = Maps.newHashMap();
+          if(Objects.isNull(records)){
+            Files.deleteIfExists(stops);
+            BasicExecutionMonitor.get().warn("Stops file exist and is empty. Proceeding to delete it. Try again.");
           }
 
           for(String key : records.keySet()){
@@ -120,7 +120,7 @@ public class WordMaker {
             general.addAll(val);
           }
 
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
           BasicExecutionMonitor.get().error("Unable to read " + stops.toFile().getName(), e);
         }
 
