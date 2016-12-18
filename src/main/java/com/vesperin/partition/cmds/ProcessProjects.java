@@ -127,16 +127,17 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
         final List<Project> projects = Projects.buildProjects(topk, scope, outDir, projectNames);
 
-        MONITOR.info(String.format("Processing %d projects.", projects.size()));
+        MONITOR.info(String.format("Processed %d projects.", projects.size()));
 
         final Map<String, Project> index = new HashMap<>();
         projects.forEach(p -> index.put(p.name(), p));
 
         if(inc){
 
-          MONITOR.info("Ignoring " +
-            out +
-            " since we are clustering projects in small steps; e.g., step1.json"
+          MONITOR.info("Ignored "
+            + out
+            + "; multiple files will be produced instead: "
+            + "e.g., step1.json, step2.json."
           );
 
           final Collection<Callable<Void>> tasks = Lists.newArrayList();

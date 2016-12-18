@@ -41,7 +41,7 @@ public class Projects {
     return buildProjects(topk, scope, outDir, projectNames, Relevance.FREQUENCY);
   }
 
-  public static List<Project> buildProjects(int topk, String scope, Path outDir, List<String> projectNames, Relevance relevance){
+  private static List<Project> buildProjects(int topk, String scope, Path outDir, List<String> projectNames, Relevance relevance){
 
     final Path stops = Paths.get(outDir.toFile().getAbsolutePath() + "/" + Jsons.STOPS);
 
@@ -53,7 +53,7 @@ public class Projects {
       final Corpus<Source>  corpus  = Corpus.ofSources();
       corpus.addAll(Sources.from(IO.collectFiles(start, "java", "Test", "test", "package-info" )));
 
-      MONITOR.info(String.format("Introspected %d source code files from %s", corpus.size(), name));
+      MONITOR.info(String.format("%d source code files found in %s's corpus", corpus.size(), name));
 
       final Map<String, Corpus<Source>> entry = Collections.singletonMap(name, corpus);
       projectMetadata.add(entry);
@@ -67,13 +67,15 @@ public class Projects {
 
       final WordsTokenizer tokenizer = tokenizer(scope, key, stops);
       if(Objects.isNull(tokenizer)){
-        throw new NoSuchElementException("ERROR: Unable to construct a tokenizer matching the given scope");
+        throw new NoSuchElementException("Unable to construct a tokenizer matching the given scope");
       }
 
       List<Selection.Word> rankedWords = collectWords(relevance, val, tokenizer);
       if(rankedWords.size() > topk){
         rankedWords = rankedWords.stream().limit(topk).collect(Collectors.toList());
       }
+
+      MONITOR.info(String.format("Collected %d words from %s repository", rankedWords.size(), key));
 
       final Set<Selection.Word> typicalOnes = rankedWords.stream()
         .collect(Collectors.toSet());
