@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.StampedLock;
 
 import static com.vesperin.text.Selection.Word;
 import static java.util.stream.Collectors.toList;
@@ -46,6 +47,8 @@ import static java.util.stream.Collectors.toSet;
 public class ProcessProjects implements BasicCli.CliCommand {
 
   private static final ExecutionMonitor MONITOR = BasicExecutionMonitor.get();
+
+  final StampedLock lock = new StampedLock();
 
   @Inject HelpOption<ProcessProjects> help;
 
@@ -192,37 +195,42 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
   private void formClusters(String label, String out, List<Project> projects) throws IOException {
     final List<List<Project>> pGroups = Lists.newArrayList();
-    final Grouping.Groups groups = groupBy(grouping, overlap, projects);
+    long stamp = lock.writeLock();
+    try {
+      final Grouping.Groups groups = groupBy(grouping, overlap, projects);
 
-    for(Grouping.Group each : groups){
-      final List<Project> pList = Lists.newArrayList();
-      for(Object o : each){
-        final Project p = (Project) o;
-        pList.add(p);
+      for(Grouping.Group each : groups){
+        final List<Project> pList = Lists.newArrayList();
+        for(Object o : each){
+          final Project p = (Project) o;
+          pList.add(p);
+        }
+
+        pGroups.add(pList);
       }
 
-      pGroups.add(pList);
+
+      final Clusters clusters = new Clusters(label, pGroups);
+      final Gson gson     = new GsonBuilder()
+        .setPrettyPrinting()
+        .create();
+
+      if(Objects.isNull(out)){
+
+        MONITOR.info((label + "\n") + gson.toJson(clusters));
+
+      } else {
+        final Path newFile = Paths.get(out);
+        Files.deleteIfExists(newFile);
+
+        IO.writeFile(newFile, gson.toJson(clusters).getBytes());
+
+        MONITOR.info(String.format("%s: %s was created.", label, out));
+      }
+    } finally {
+      lock.unlockWrite(stamp);
     }
 
-
-    final Clusters clusters = new Clusters(label, pGroups);
-    final Gson gson     = new GsonBuilder()
-      .setPrettyPrinting()
-      .create();
-
-    if(Objects.isNull(out)){
-
-      MONITOR.info((label + "\n") + gson.toJson(clusters));
-
-    } else {
-
-      final Path newFile = Paths.get(out);
-      Files.deleteIfExists(newFile);
-
-      IO.writeFile(newFile, gson.toJson(clusters).getBytes());
-
-      MONITOR.info(String.format("%s: %s was created.", label, out));
-    }
   }
 
   private static Grouping.Groups groupBy(int grouping, int overlap, List<Project> projects){
