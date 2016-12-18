@@ -148,7 +148,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
               .limit(step)
               .collect(toList());
 
-            final String filename = Objects.isNull(out) ? null : "step" + step + ".json";
+            final String filename = Objects.isNull(out) ? null : ("step" + step + ".json");
             final String stepStr  = "Step " + step;
             tasks.add(() -> {
               try {
@@ -190,7 +190,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
   }
 
 
-  private void formClusters(String step, String out, List<Project> projects) throws IOException {
+  private void formClusters(String label, String out, List<Project> projects) throws IOException {
     final List<List<Project>> pGroups = Lists.newArrayList();
     final Grouping.Groups groups = groupBy(grouping, overlap, projects);
 
@@ -205,14 +205,14 @@ public class ProcessProjects implements BasicCli.CliCommand {
     }
 
 
-    final Clusters clusters = new Clusters(step, pGroups);
+    final Clusters clusters = new Clusters(label, pGroups);
     final Gson gson     = new GsonBuilder()
       .setPrettyPrinting()
       .create();
 
     if(Objects.isNull(out)){
 
-      MONITOR.info((step + "\n") + gson.toJson(clusters));
+      MONITOR.info((label + "\n") + gson.toJson(clusters));
 
     } else {
 
@@ -221,7 +221,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
       IO.writeFile(newFile, gson.toJson(clusters).getBytes());
 
-      MONITOR.info(String.format("%s: %s was created.", step, out));
+      MONITOR.info(String.format("%s: %s was created.", label, out));
     }
   }
 
@@ -237,7 +237,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
   private static class Clusters {
     List<Cluster> clusters;
 
-    Clusters(String step, List<List<Project>> groups){
+    Clusters(String label, List<List<Project>> groups){
       clusters = Lists.newArrayList();
 
       for(List<Project> each : groups){
@@ -265,19 +265,19 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
       }
 
-      extraInfo(step, clusters);
+      extraInfo(label, clusters);
     }
 
-    private static void extraInfo(String step, List<Cluster> clusters) {
+    private static void extraInfo(String label, List<Cluster> clusters) {
       if(MONITOR.isActive()){ // placed on purpose to avoid extra processing
 
-        MONITOR.info(String.format("%s: Produced %d clusters", step, clusters.size()));
+        MONITOR.info(String.format("%s: Produced %d clusters", label, clusters.size()));
 
         final int avgSize     = (clusters.stream().mapToInt(s -> s.projectSet().size())).sum()/(clusters.size());
         final int singletons  = (clusters.stream().filter(c -> c.projectSet().size() == 1).mapToInt(s -> s.projectSet().size())).sum();
 
-        MONITOR.info(String.format("%s: Cluster average size: %d ", step, avgSize));
-        MONITOR.info(String.format("%s: Total number of singleton clusters: %d ", step, singletons));
+        MONITOR.info(String.format("%s: Cluster average size: %d ", label, avgSize));
+        MONITOR.info(String.format("%s: Total number of singleton clusters: %d ", label, singletons));
 
       }
     }
