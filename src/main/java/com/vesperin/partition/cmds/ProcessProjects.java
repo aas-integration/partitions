@@ -153,29 +153,31 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
             final String filename = Objects.isNull(out) ? null : ("step" + step + ".json");
             final String stepStr  = "Step " + step;
-            tasks.add(() -> {
-              try {
-                formClusters(stepStr, filename, sublist);
-              } catch (IOException e) {
-                MONITOR.error("Unable to form cluster", e);
-              }
 
-              return null;
-            });
+            formClusters(stepStr, filename, sublist);
+//            tasks.add(() -> {
+//              try {
+//                formClusters(stepStr, filename, sublist);
+//              } catch (IOException e) {
+//                MONITOR.error("Unable to form cluster", e);
+//              }
+//
+//              return null;
+//            });
 
           }
 
-          final ExecutorService service = Threads.scaleExecutor(projects.size());
-
-          try {
-
-            service.invokeAll(tasks);
-
-          } catch (InterruptedException e){
-            Thread.currentThread().interrupt();
-          }
-
-          Threads.shutdownService(service);
+//          final ExecutorService service = Threads.scaleExecutor(projects.size());
+//
+//          try {
+//
+//            service.invokeAll(tasks);
+//
+//          } catch (InterruptedException e){
+//            Thread.currentThread().interrupt();
+//          }
+//
+//          Threads.shutdownService(service);
 
         } else {
           formClusters("Step 0", out, projects);
@@ -195,8 +197,8 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
   private void formClusters(String label, String out, List<Project> projects) throws IOException {
     final List<List<Project>> pGroups = Lists.newArrayList();
-    long stamp = lock.writeLock();
-    try {
+////    long stamp = lock.writeLock();
+//    try {
       final Grouping.Groups groups = groupBy(grouping, overlap, projects);
 
       for(Grouping.Group each : groups){
@@ -227,9 +229,9 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
         MONITOR.info(String.format("%s: %s was created.", label, out));
       }
-    } finally {
-      lock.unlockWrite(stamp);
-    }
+//    } finally {
+////      lock.unlockWrite(stamp);
+//    }
 
   }
 
@@ -277,6 +279,9 @@ public class ProcessProjects implements BasicCli.CliCommand {
     }
 
     private static void extraInfo(String label, List<Cluster> clusters) {
+      if(Objects.isNull(clusters)) return;
+      if(clusters.isEmpty()) return;
+
       if(MONITOR.isActive()){ // placed on purpose to avoid extra processing
 
         MONITOR.info(String.format("%s: Produced %d clusters", label, clusters.size()));
