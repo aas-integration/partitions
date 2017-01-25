@@ -33,8 +33,10 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.locks.StampedLock;
 
 import static com.vesperin.text.Selection.Word;
 import static java.util.stream.Collectors.toList;
@@ -48,9 +50,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
   private static final ExecutionMonitor MONITOR = BasicExecutionMonitor.get();
 
-  final StampedLock lock = new StampedLock();
-
-  @Inject HelpOption<ProcessProjects> help;
+  @Inject private HelpOption<ProcessProjects> help;
 
   @Option(name = {"-f", "--from"}, arity = 1, description = "locates the corpus.json input")
   private String from = null;
@@ -143,7 +143,7 @@ public class ProcessProjects implements BasicCli.CliCommand {
             + "e.g., step1.json, step2.json."
           );
 
-          final Collection<Callable<Void>> tasks = Lists.newArrayList();
+          final Collection<WriteToFile> tasks = Lists.newArrayList();
 
           final int n = projects.size() + 1;
           for(int step = 1; step <= n; step++){
@@ -154,33 +154,29 @@ public class ProcessProjects implements BasicCli.CliCommand {
             final String filename = Objects.isNull(out) ? null : ("step" + step + ".json");
             final String stepStr  = "Step " + step;
 
-            formClusters(stepStr, filename, sublist);
-//            tasks.add(() -> {
-//              try {
-//                formClusters(stepStr, filename, sublist);
-//              } catch (IOException e) {
-//                MONITOR.error("Unable to form cluster", e);
-//              }
-//
-//              return null;
-//            });
-
+            final Grouping.Groups groups = groupBy(grouping, overlap, sublist);
+            tasks.add(new WriteToFile(stepStr, filename, projects(groups)));
           }
 
-//          final ExecutorService service = Threads.scaleExecutor(projects.size());
-//
-//          try {
-//
-//            service.invokeAll(tasks);
-//
-//          } catch (InterruptedException e){
-//            Thread.currentThread().interrupt();
-//          }
-//
-//          Threads.shutdownService(service);
+          final ExecutorService service = Threads.scaleExecutor(projects.size());
+          final CompletionService<Void> async = new ExecutorCompletionService<>(service);
+
+          tasks.forEach(async::submit);
+
+          try {
+
+            for (int t = 0; t < tasks.size(); t++) {
+              async.take().get();
+            }
+
+          } catch (InterruptedException | ExecutionException e){
+            Thread.currentThread().interrupt();
+          } finally {
+            Threads.shutdownService(service);
+          }
 
         } else {
-          formClusters("Step 0", out, projects);
+          formClusters(out, projects);
         }
 
 
@@ -195,44 +191,50 @@ public class ProcessProjects implements BasicCli.CliCommand {
   }
 
 
-  private void formClusters(String label, String out, List<Project> projects) throws IOException {
+  private void formClusters(String out, List<Project> projects) throws IOException {
+
+
+    final Grouping.Groups groups = groupBy(grouping, overlap, projects);
+    final List<List<Project>> pGroups = projects(groups);
+
+
+    final Clusters clusters = new Clusters("Step 0", pGroups);
+    final Gson gson = new GsonBuilder()
+      .setPrettyPrinting()
+      .create();
+
+    processFile("Step 0", out, clusters, gson);
+  }
+
+  private static void processFile(String label, String out, Clusters clusters, Gson gson) throws IOException {
+    if (Objects.isNull(out)) {
+
+      MONITOR.info((label + "\n") + gson.toJson(clusters));
+
+    } else {
+      final Path newFile = Paths.get(out);
+      Files.deleteIfExists(newFile);
+
+      IO.writeFile(newFile, gson.toJson(clusters).getBytes());
+
+      MONITOR.info(String.format("%s: %s was created.", label, out));
+    }
+  }
+
+  private static List<List<Project>> projects(Grouping.Groups groups){
     final List<List<Project>> pGroups = Lists.newArrayList();
-////    long stamp = lock.writeLock();
-//    try {
-      final Grouping.Groups groups = groupBy(grouping, overlap, projects);
-
-      for(Grouping.Group each : groups){
-        final List<Project> pList = Lists.newArrayList();
-        for(Object o : each){
-          final Project p = (Project) o;
-          pList.add(p);
-        }
-
-        pGroups.add(pList);
+    for(Grouping.Group each : groups){
+      final List<Project> pList = Lists.newArrayList();
+      for(Object o : each){
+        final Project p = (Project) o;
+        pList.add(p);
       }
 
+      pGroups.add(pList);
 
-      final Clusters clusters = new Clusters(label, pGroups);
-      final Gson gson     = new GsonBuilder()
-        .setPrettyPrinting()
-        .create();
+    }
 
-      if(Objects.isNull(out)){
-
-        MONITOR.info((label + "\n") + gson.toJson(clusters));
-
-      } else {
-        final Path newFile = Paths.get(out);
-        Files.deleteIfExists(newFile);
-
-        IO.writeFile(newFile, gson.toJson(clusters).getBytes());
-
-        MONITOR.info(String.format("%s: %s was created.", label, out));
-      }
-//    } finally {
-////      lock.unlockWrite(stamp);
-//    }
-
+    return pGroups;
   }
 
   private static Grouping.Groups groupBy(int grouping, int overlap, List<Project> projects){
@@ -304,6 +306,35 @@ public class ProcessProjects implements BasicCli.CliCommand {
       this.clusters = clusters;
     }
 
+  }
+
+  private static class WriteToFile implements Callable<Void> {
+
+    private final String              label;
+    private final String              out;
+    private final List<List<Project>> pGroups;
+
+    WriteToFile(String label, String out, List<List<Project>> pGroups){
+      this.pGroups  = pGroups;
+      this.label    = label;
+      this.out      = out;
+
+    }
+
+    @Override public Void call() throws Exception {
+      formClusters();
+      return null;
+    }
+
+    private void formClusters() throws IOException {
+
+      final Clusters clusters = new Clusters(label, pGroups);
+      final Gson gson     = new GsonBuilder()
+        .setPrettyPrinting()
+        .create();
+
+      processFile(label, out, clusters, gson);
+    }
   }
 
   private static class Cluster {
