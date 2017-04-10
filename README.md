@@ -1,18 +1,12 @@
 # Partitions
 
-Partitions a list of projects 'L' into 'N' clusters based on their shared words.
-
-The idea is to treat each project in 'L' as a cluster. Then, each project 'p'
-is compared against all the projects in 'L' (excluding 'p'). The purpose of this
-operation is to identify a project 'o' that shares a number (e.g., > 3) 'n' of
-words with 'p'. If identified, this project 'o' is added to 'p'.
+The goal is to divide N projects up into K clusters (based on their shared typical words) so that the the minimum number of shared words between projects in different clusters is maximized. K is calculated using the following formula: K = Math.floor(Math.sqrt(N)). 
 
 Notes:
 
-1. Relocation of projects (already placed in a group) to other groups where they
-shared more words than their existing group will take place as needed.
+1. Partitions will relocate projects (already placed in a cluster) into other clusters as needed.
 
-2. Unpaired projects will remain singleton clusters.
+2. Unclustered projects will remain singleton clusters.
 
 
 ## Running Partitions
@@ -38,7 +32,3 @@ $ ./vip p -f path/to/corpus.json -t path/to/out-folder -v -o projects.json
 
 Please take a look at the `projects.json` file. This file is an example of
 a json file produced by the 'Partitions' project.
-
-
-
-
