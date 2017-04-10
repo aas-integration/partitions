@@ -32,3 +32,11 @@ $ ./vip p -f path/to/corpus.json -t path/to/out-folder -v -o projects.json
 
 Please take a look at the `projects.json` file. This file is an example of
 a json file produced by the 'Partitions' project.
+
+## Additional Resources
+
+Partitions also supports the following algorithms:
+
+* [Clustering with Kruskal algorithm](https://github.com/aas-integration/integration-test2/wiki/MSTApproach)
+
+* [Clustering with Kmeans algorithm](https://github.com/aas-integration/integration-test2/wiki/LSIApproach)
