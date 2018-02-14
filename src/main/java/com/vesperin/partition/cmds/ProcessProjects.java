@@ -37,6 +37,7 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import static com.vesperin.text.Selection.Word;
 import static java.util.stream.Collectors.toList;
@@ -130,10 +131,15 @@ public class ProcessProjects implements BasicCli.CliCommand {
 
         final List<Project> projects = Projects.buildProjects(topk, scope, outDir, projectNames);
 
-        MONITOR.info(String.format("Processed %d projects.", projects.size()));
 
         final Map<String, Project> index = new HashMap<>();
-        projects.forEach(p -> index.put(p.name(), p));
+
+        for(Project each : projects){
+          index.put(each.name(), each);
+          MONITOR.info(String.format("%s's typical words: %s", each.name(), each.wordSet()));
+        }
+
+        MONITOR.info(String.format("Processed %d projects.", index.size()));
 
         if(inc){
 
@@ -166,10 +172,14 @@ public class ProcessProjects implements BasicCli.CliCommand {
           try {
 
             for (int t = 0; t < tasks.size(); t++) {
-              async.take().get();
+              Future<Void> tick;
+              while((tick = async.poll()) == null){}
+
+              tick.get();
             }
 
           } catch (InterruptedException | ExecutionException e){
+            MONITOR.error("Unexpected error occurred: ", e);
             Thread.currentThread().interrupt();
           } finally {
             Threads.shutdownService(service);

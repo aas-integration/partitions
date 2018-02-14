@@ -6,6 +6,7 @@ import com.github.rvesse.airline.parser.errors.ParseException;
 import com.vesperin.partition.cmds.CommonWords;
 import com.vesperin.partition.cmds.ProcessKestrelData;
 import com.vesperin.partition.cmds.ProcessProjects;
+import com.vesperin.partition.cmds.ProcessWords;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -127,6 +128,7 @@ public interface BasicCli {
       .withCommand(ProcessProjects.class)
       .withCommand(CommonWords.class)
       .withCommand(ProcessKestrelData.class)
+      .withCommand(ProcessWords.class)
     );
   }
 

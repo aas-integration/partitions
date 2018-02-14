@@ -134,9 +134,7 @@ public class IO {
    * @return the list of files matching a given extension.
    */
   public static List<File> collectFiles(Path path, String extension, String... keywords){
-    return collectFiles(path.toFile(), extension, keywords)
-      .stream()
-      .collect(Collectors.toList());
+    return new ArrayList<>(collectFiles(path.toFile(), extension, keywords));
   }
 
   /**

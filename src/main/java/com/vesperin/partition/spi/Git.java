@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.vesperin.partition.utils.IO;
+import com.vesperin.partition.utils.Immutables;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -112,8 +113,8 @@ public class Git {
           final Map<String, String> eachRepositoryEntry = eachRecordEntry.get(eachRepository);
 
           eachRepositoryEntry.keySet().stream()
-            .filter("git-url"::equals)
-            .forEach(eachEntryKey -> names.add(Git.cloneRepository(eachRepositoryEntry.get(eachEntryKey), to)));
+            .filter("name"::equals)
+            .forEach(eachEntryKey -> names.add(eachRepositoryEntry.get(eachEntryKey)));
 
         }
       }

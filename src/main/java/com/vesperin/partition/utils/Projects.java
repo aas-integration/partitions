@@ -30,7 +30,7 @@ public class Projects {
 
   private static final ExecutionMonitor MONITOR = BasicExecutionMonitor.get();
 
-  private enum Relevance { FREQUENCY, TYPICALITY }
+  public enum Relevance { FREQUENCY, TYPICALITY }
   private Projects(){}
 
   public static List<Project> buildProjects(int topk, String scope, Path outDir, List<String> projectNames){
@@ -41,7 +41,7 @@ public class Projects {
     return buildProjects(topk, scope, outDir, projectNames, Relevance.FREQUENCY);
   }
 
-  private static List<Project> buildProjects(int topk, String scope, Path outDir, List<String> projectNames, Relevance relevance){
+  public static List<Project> buildProjects(int topk, String scope, Path outDir, List<String> projectNames, Relevance relevance){
 
     final Path stops = Paths.get(outDir.toFile().getAbsolutePath() + "/" + Jsons.STOPS);
 
